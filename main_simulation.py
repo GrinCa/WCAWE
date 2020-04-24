@@ -25,30 +25,12 @@ import numpy as np
 import os
 import contextlib
 from matrices_manager import*
-from sympy import*
 from derivatives import*
 from wcawe_univariate import*
+import matplotlib.pyplot as plt
 #------------------------------------------------------------------------------
 # end import
 #------------------------------------------------------------------------------
-
-
-# import pickle
-# from sympy.parsing.sympy_parser import parse_expr
-
-
-# str_func = 'x'
-# sym = {'x':Symbol('x'),'y':Symbol('y')}
-# func = parse_expr(str_func,sym)
-
-# func = diff(func,sym['x'],0)
-# #print(type(func))
-# func = diff(func,sym['y'],0)
-# #print(func)
-# # a = a.subs(sym['x'],2)
-# # a = a.subs(sym['y'],2)
-# #print(type(func) != mul.Mul)
-
 
 flag = dict()
 flag['rerun'] = 0
@@ -59,7 +41,6 @@ flag['calculateWCAWE'] = 0
 flag['plotcomparison'] = 0
 flag['plotcomparisonMULTI'] = 0
 flag['convert2VTK'] = 0
-
 
 
 #Source
@@ -75,7 +56,7 @@ param['P0'] = 2e-5
 
 #Frequency range
 param['fmin'] = 200
-param['fmax'] = 600
+param['fmax'] = 400
 param['f_range'] = np.array([param.get('fmin'),
                              param.get('fmax')])
 param['freqincr'] = 4
@@ -83,7 +64,7 @@ param['freq'] = np.array(range(param.get('fmin'),
                           param.get('fmax'),
                           param.get('freqincr')))
 param['nfreq'] = param.get('freq').size
-param['freqref'] = np.array([300,400,500])
+param['freqref'] = np.array([300])
 param['nfreqref'] = param.get('freqref').size
 
 # Input data for the loop over expansion orders. Note that for each
@@ -157,23 +138,25 @@ m.variables = ['f']
 m.build_RHS(0.1,[0,0,0])
 
 deriv = Derivative(m)
-t0 = time()
 deriv.create_cross_derivatives()
 deriv.load_cross_derivatives()
 
 
 
-param['nvecfreq'] = 60
+param['nvecfreq'] = 30
 
-Pout_WCAWE = solve_wcawe_UNIVARIATE(param,m,deriv)
+ffs = FFS(m,param,deriv)
 
-FE_solution = compute_FFS_FE(param,m)
 
-import matplotlib.pyplot as plt
+Pout_WCAWE = ffs.solve_wcawe_UNIVARIATE()
 
-plt.plot(param['freq'],np.absolute(Pout_WCAWE[m.id_source,:]))
-plt.plot(param['freq'],np.absolute(FE_solution[m.id_source,:]),'+',color='red')
-plt.show()
+FE_solution = ffs.compute_FFS_FE()
+
+
+
+#plt.plot(param['freq'],np.absolute(Pout_WCAWE[m.id_source,:]))
+#plt.plot(param['freq'],np.absolute(FE_solution[m.id_source,:]),'+',color='red')
+#plt.show()
 
 
 
